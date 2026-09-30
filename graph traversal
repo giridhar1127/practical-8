@@ -1,0 +1,127 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <queue>
+
+template <typename T>
+class Graph {
+private:
+    // Adjacency list: Map each node to a vector of its neighbors
+    std::unordered_map<T, std::vector<T>> adjList;
+    bool isDirected;
+
+    // Helper method for recursive DFS
+    void dfsHelper(const T& node, std::unordered_set<T>& visited, std::vector<T>& traversal) {
+        visited.insert(node);
+        traversal.push_back(node);
+
+        for (const T& neighbor : adjList[node]) {
+            if (visited.find(neighbor) == visited.end()) {
+                dfsHelper(neighbor, visited, traversal);
+            }
+        }
+    }
+
+public:
+    Graph(bool directed = false) : isDirected(directed) {}
+
+    // Add a vertex to the graph
+    void addVertex(const T& vertex) {
+        if (adjList.find(vertex) == adjList.end()) {
+            adjList[vertex] = std::vector<T>();
+        }
+    }
+
+    // Add an edge between u and v
+    void addEdge(const T& u, const T& v) {
+        addVertex(u);
+        addVertex(v);
+
+        adjList[u].push_back(v);
+        if (!isDirected) {
+            adjList[v].push_back(u);
+        }
+    }
+
+    // Breadth-First Search (Iterative using Queue)
+    std::vector<T> bfs(const T& startNode) {
+        if (adjList.find(startNode) == adjList.end()) {
+            return {};
+        }
+
+        std::vector<T> traversal;
+        std::unordered_set<T> visited;
+        std::queue<T> q;
+
+        q.push(startNode);
+        visited.insert(startNode);
+
+        while (!q.empty()) {
+            T current = q.front();
+            q.pop();
+            traversal.push_back(current);
+
+            for (const T& neighbor : adjList[current]) {
+                if (visited.find(neighbor) == visited.end()) {
+                    visited.insert(neighbor);
+                    q.push(neighbor);
+                }
+            }
+        }
+
+        return traversal;
+    }
+
+    // Depth-First Search (Recursive)
+    std::vector<T> dfs(const T& startNode) {
+        if (adjList.find(startNode) == adjList.end()) {
+            return {};
+        }
+
+        std::vector<T> traversal;
+        std::unordered_set<T> visited;
+
+        dfsHelper(startNode, visited, traversal);
+
+        return traversal;
+    }
+};
+
+int main() {
+    // Creating an undirected graph with string node labels
+    Graph<std::string> g(false);
+
+    // Building the sample graph:
+    //      A
+    //     / \
+    //    B   C
+    //   /   / \
+    //  D   E   F
+
+    g.addEdge("A", "B");
+    g.addEdge("A", "C");
+    g.addEdge("B", "D");
+    g.addEdge("C", "E");
+    g.addEdge("C", "F");
+
+    // Execute BFS
+    std::vector<std::string> bfsOrder = g.bfs("A");
+    std::cout << "BFS Traversal from A: ";
+    for (const auto& node : bfsOrder) {
+        std::cout << node << " ";
+    }
+    std::cout << "\n";
+    // Output: A B C D E F
+
+    // Execute DFS
+    std::vector<std::string> dfsOrder = g.dfs("A");
+    std::cout << "DFS Traversal from A: ";
+    for (const auto& node : dfsOrder) {
+        std::cout << node << " ";
+    }
+    std::cout << "\n";
+    // Output: A B D C E F
+
+    return 0;
+}
